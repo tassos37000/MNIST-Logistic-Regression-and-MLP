@@ -1,36 +1,47 @@
 # PART A
 import tensorflow as tf
 import numpy as np
+# for visuals
 import tqdm
+import matplotlib.pyplot as plt
 
 
-# keep classes 5 and 6
 def filterClasses(x, y):
+    """
+    Keeps only classes 5 and 6
+    :param x: dataset features
+    :param y: dataset labels
+    :return: the dataset only with filtered classes
+    """
     keep = (y == 5) | (y == 6)
     x, y = x[keep], y[keep]
     y = y == 5
     return x, y
 
 
-# reshape function
 def reshapeToVector(train):
+    """
+    function to reshape images from 28x28 to a 784 vector
+    :param train: dataset to reshape
+    :return: a numpy array with the reshapes dataset and with type float64
+    """
     resh_train = []
-    for i in tqdm.tqdm(range(len(train))):
+    for i in range(len(train)):
         resh_train.append(np.reshape(np.array(train[i]), 784).astype("float64"))
-    return resh_train
+    return np.array(resh_train)
 
 
-# rescale to [0.0, 1.0]
 def rescale(train):
+    """
+    Rescales dataset [0,255] -> [0,1]
+    :param train: dataset
+    :return: the rescaled dataset
+    """
     for i in tqdm.tqdm(range(len(train))):
         for j in range(len(train[i])):
             if train[i][j] == 0:
                 continue
-            # print("before train[i][j]: ", train[i][j])
-            # print("train[i][j]/255.0: ", train[i][j]/255.0)
-            # print(type(train[i][j]))
-            train[i][j] = train[i][j]/255.0
-            # print("after train[i][j]: ", train[i][j])
+            train[i][j] = train[i][j] / 255.0
 
 
 # a)
@@ -39,19 +50,82 @@ x_train, y_train = filterClasses(x_train, y_train)
 x_test, y_test = filterClasses(x_test, y_test)
 print("Loading: DONE")
 
-# validation set
-(x_val, y_val) = (x_train[int(0.8*len(x_train)):], y_train[int(0.8*len(y_train)):])
-(x_train, y_train) = (x_train[:int(0.8*len(x_train))], y_train[:int(0.8*len(y_train))])
+# create validation set from train set
+(x_val, y_val) = (x_train[int(0.8 * len(x_train)):], y_train[int(0.8 * len(y_train)):])
+(x_train, y_train) = (x_train[:int(0.8 * len(x_train))], y_train[:int(0.8 * len(y_train))])
 
 # b)
 print("Reshaping...")
 x_train = reshapeToVector(x_train)
 x_val = reshapeToVector(x_val)
 x_test = reshapeToVector(x_test)
-print("\nReshaping: DONE\n")
+print("Reshaping: DONE\n")
 
 print("Rescaling... ")
 rescale(x_train)
 rescale(x_val)
 rescale(x_test)
-print("Rescaling: DONE")
+print("\nRescaling: DONE")
+
+
+# PART B
+
+# c)
+def sigmoid(x):
+    """
+    Sigmoid function
+    :param x: a numpy array to apply sigmoid function
+    :return: the result of applying sigmoid
+    """
+    return 1 / (1 + np.exp(-x))
+
+
+def max_likelihood(y_true, y_pred):
+    """
+    Calculates maximum likelihood
+    :param y_true: a numpy array of true values
+    :param y_pred: a numpy array of predicted values
+    :return: the maximum likelihood
+    """
+    return sum(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+
+
+def logistic_regression(x, y, max_iterations=50, optimizer=0):
+    """Trains logistic regression model using gradient ascent
+    to gain maximum likelihood on the training data
+    Args:
+        x : a numpy array of data
+        y : a numpy array of label
+        max_iterations : number of max iterations
+        optimizer : the optimizer for gradient ascent
+    Returns: array with likelihoods
+    """
+    likelihoods = []
+    weights = np.zeros(x.shape[1])
+
+    # Perform gradient ascent
+    for _ in tqdm.tqdm(range(max_iterations)):
+        # Define the linear hypothesis(z) first
+        z = np.dot(x, weights)
+        # Output probability value by applying sigmoid on z
+        y_pred = sigmoid(z)
+        # Calculate the gradient values
+        # This is just vectorized efficient way of implementing gradient. Don't worry, we will discuss it later.
+        gradient = np.mean((y - y_pred) * x.T, axis=1)
+        # Update the weights
+        weights = weights + optimizer * gradient
+        # Calculating max likelihood
+        likelihood = max_likelihood(y, y_pred)
+        likelihoods.append(likelihood)
+
+    return likelihoods
+
+
+# Evolution of the cost by iteration
+for opt in [0, 0.1, 0.2, 0.3, 0.4, 0.5]:
+    a = logistic_regression(x_train, y_train, 100, opt)
+    plt.plot(list(range(len(a))), a)
+    plt.title('Evolution of the cost by iteration for optimizer: ' + str(opt))
+    plt.xlabel('Iteration')
+    plt.ylabel('Cost')
+    plt.show()
