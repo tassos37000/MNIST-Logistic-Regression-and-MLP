@@ -77,7 +77,7 @@ def sigmoid(x):
     :param x: a numpy array to apply sigmoid function
     :return: the result of applying sigmoid
     """
-    return 1 / (1 + np.exp(-x))
+    return 1.0 / (1.0 + np.exp(-x))
 
 
 def max_likelihood(y_true, y_pred):
@@ -87,7 +87,7 @@ def max_likelihood(y_true, y_pred):
     :param y_pred: a numpy array of predicted values
     :return: the maximum likelihood
     """
-    return sum(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+    return np.dot(y_true.T, np.log(y_pred)) + np.dot((1 - y_true).T, np.log(1 - y_pred))
 
 
 def logistic_regression(x, y, max_iterations=50, optimizer=0):
@@ -101,21 +101,18 @@ def logistic_regression(x, y, max_iterations=50, optimizer=0):
     Returns: array with likelihoods
     """
     likelihoods = []
-    weights = np.zeros(x.shape[1])
+    theta = np.zeros(x.shape[1])
 
     # Perform gradient ascent
     for _ in tqdm.tqdm(range(max_iterations)):
-        # Define the linear hypothesis(z) first
-        z = np.dot(x, weights)
         # Output probability value by applying sigmoid on z
-        y_pred = sigmoid(z)
+        h = sigmoid(np.dot(x, theta))
         # Calculate the gradient values
-        # This is just vectorized efficient way of implementing gradient. Don't worry, we will discuss it later.
-        gradient = np.mean((y - y_pred) * x.T, axis=1)
+        gradient = np.mean((y - h) * x.T, axis=1)
         # Update the weights
-        weights = weights + optimizer * gradient
+        theta = theta + optimizer * gradient
         # Calculating max likelihood
-        likelihood = max_likelihood(y, y_pred)
+        likelihood = max_likelihood(y, h)
         likelihoods.append(likelihood)
 
     return likelihoods
