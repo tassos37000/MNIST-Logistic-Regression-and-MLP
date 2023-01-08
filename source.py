@@ -237,7 +237,7 @@ def gradcheck_sigmoid(Winit, X, t, lamda):
     return gradEw, numericalGrad
 
 
-def fit_MLP(X, y, X_valid=np.array([]), y_valid=np.array([]), n_hidden=100, n_iterations=-1, learning_rate=0.1):
+def fit_MLP(X, y, X_valid=np.array([]), y_valid=np.array([]), n_hidden=100, n_iterations=0, learning_rate=0.1):
     """
     MLP algorithm with as many input neurons as features, one hidden layer with n_hidden neurons and
     one neuron for output layer. Activation function for hidden and output layer is the Sigmoid function.
@@ -273,6 +273,7 @@ def fit_MLP(X, y, X_valid=np.array([]), y_valid=np.array([]), n_hidden=100, n_it
         a1 = sigmoid(z1)
         z2 = np.dot(a1, w2) + b2
         yhat = sigmoid(z2)
+        # cur_cost = round(compute_cost(yhat, y), 2)  # uncomment this line to test st)
         # ..............
 
         # Early stopping # comment all early stopping to test st)
@@ -280,7 +281,7 @@ def fit_MLP(X, y, X_valid=np.array([]), y_valid=np.array([]), n_hidden=100, n_it
         f1_val = sigmoid(z1_val)
         z2_val = np.dot(f1_val, w2) + b2
         yhat_val = sigmoid(z2_val)
-        cur_cost = round(compute_cost(yhat_val, y_valid), 2)
+        cur_cost = round(compute_cost(yhat_val, y_valid), 3)
 
         if cur_cost >= cost:
             count_error += 1
@@ -360,7 +361,7 @@ for m in M:
     n_epochs_for_m = []
     for lr in learn_rate:
         print("\nLearning rate: ", lr, " Number of hidden layers: ", m)
-        a = fit_MLP(x_val, y_val, x_val, y_val, m, 1000, lr)
+        a = fit_MLP(x_train, y_train, x_val, y_val, m, 1000, lr)
         if a[4] < best_model[2][4]:
             best_model = (m, lr, a)
         n_epochs_for_m.append(a[5])
