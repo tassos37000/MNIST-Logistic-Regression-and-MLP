@@ -26,8 +26,8 @@ def reshapeToVector(train):
     :return: a numpy array with the reshapes dataset and with type float64
     """
     resh_train = []
-    for j in range(len(train)):
-        resh_train.append(np.reshape(np.array(train[j]), 784).astype("float64"))
+    for p in range(len(train)):
+        resh_train.append(np.reshape(np.array(train[p]), 784).astype("float64"))
     return np.array(resh_train)
 
 
@@ -110,7 +110,7 @@ def fitLogisticRegression(x, y, max_iterations=50, optimizer=0.0, _lambda=0.0):
 
 
 # d)
-LR_train, LR_theta = fitLogisticRegression(x_train, y_train, 100, 0.1)
+# LR_train, LR_theta = fitLogisticRegression(x_train, y_train, 100, 0.1)
 # LR_train.pop(0)
 # plt.plot(np.arange(len(LR_train)), LR_train)
 # plt.title('Evolution of the cost by iteration for optimizer: ' + str(0.3))
@@ -131,31 +131,31 @@ def predictLogisticRegression(theta, x):
     return p
 
 
-p_test = predictLogisticRegression(LR_theta, x_test)
-print('Accuracy of test set', round(np.mean(p_test.astype('int') == y_test) * 100, 3), "%")
+# p_test = predictLogisticRegression(LR_theta, x_test)
+# print('Accuracy of test set', round(np.mean(p_test.astype('int') == y_test) * 100, 3), "%")
 
-# e)
-print("\ne)")
-list_l2 = np.linspace(10**-4, 10, num=100)
-theta_l2 = []
-accuracy_l2 = []
-
-for i in tqdm.tqdm(range(len(list_l2))):
-    _, LR_theta = fitLogisticRegression(x_val, y_val, 100, 0.1, list_l2[i])
-    theta_l2.append(LR_theta)
-    p_test = predictLogisticRegression(LR_theta, x_val)
-    accuracy_l2.append(np.mean(p_test.astype('int') == y_val) * 100)
-
-# Show accuracy by L2
-plt.plot(list_l2, accuracy_l2)
-plt.xlabel('L2')
-plt.ylabel('accuracy')
-plt.show()
-
-# accuracy of best model with L2 regularization
-min_val_error = np.where(accuracy_l2 == max(accuracy_l2))
-p_test = predictLogisticRegression(theta_l2[min_val_error[0][0]], x_test)
-print('Accuracy of test set with L2 regularization', round(np.mean(p_test.astype('int') == y_test) * 100, 3), "%")
+# # e)
+# print("\ne)")
+# list_l2 = np.linspace(10**-4, 10, num=100)
+# theta_l2 = []
+# accuracy_l2 = []
+#
+# for i in tqdm.tqdm(range(len(list_l2))):
+#     _, LR_theta = fitLogisticRegression(x_val, y_val, 100, 0.1, list_l2[i])
+#     theta_l2.append(LR_theta)
+#     p_test = predictLogisticRegression(LR_theta, x_val)
+#     accuracy_l2.append(np.mean(p_test.astype('int') == y_val) * 100)
+#
+# # Show accuracy by L2
+# plt.plot(list_l2, accuracy_l2)
+# plt.xlabel('L2')
+# plt.ylabel('accuracy')
+# plt.show()
+#
+# # accuracy of best model with L2 regularization
+# min_val_error = np.where(accuracy_l2 == max(accuracy_l2))
+# p_test = predictLogisticRegression(theta_l2[min_val_error[0][0]], x_test)
+# print('Accuracy of test set with L2 regularization', round(np.mean(p_test.astype('int') == y_test) * 100, 3), "%")
 
 # PART C
 #
@@ -177,12 +177,6 @@ def compute_cost(yhat, y):
     return cost
 
 
-def softmax(x, ax=1):
-    m = np.max(x, axis=ax, keepdims=True)  # max per row
-    p = np.exp(x - m)
-    return (p / np.sum(p, axis=ax, keepdims=True))
-
-
 def cost_grad_sigmoid(W, X, t, lamda):
     # X: NxD
     # W: KxD
@@ -192,7 +186,7 @@ def cost_grad_sigmoid(W, X, t, lamda):
     N, D = X.shape
     K = t.shape[1]
 
-    y = softmax(np.dot(X, W))
+    y = sigmoid(np.dot(X, W))
 
     for n in range(N):
         for k in range(K):
@@ -247,7 +241,7 @@ def fit_MLP(X, y, X_valid=np.array([]), y_valid=np.array([]), n_hidden=100, n_it
     :param X_valid: a numpy array with the validation data
     :param y_valid: a numpy array with the validation labels
     :param n_hidden: number of neurons for hidden layer
-    :param n_iterations: number of iterations
+    :param n_iterations: number of iterations for testsing purposes
     :param learning_rate: learning rate for gradient descent
     :return: a tuple with first table of weights(w1), first vector opf biases(b1),
                           second table of weights(w2), second vector opf biases(b2),
@@ -281,7 +275,7 @@ def fit_MLP(X, y, X_valid=np.array([]), y_valid=np.array([]), n_hidden=100, n_it
         f1_val = sigmoid(z1_val)
         z2_val = np.dot(f1_val, w2) + b2
         yhat_val = sigmoid(z2_val)
-        cur_cost = round(compute_cost(yhat_val, y_valid), 3)
+        cur_cost = round(compute_cost(yhat_val, y_valid), 5)
 
         if cur_cost >= cost:
             count_error += 1
@@ -295,6 +289,7 @@ def fit_MLP(X, y, X_valid=np.array([]), y_valid=np.array([]), n_hidden=100, n_it
         # ..............
 
         # Backward Pass
+        # /n0 to normalize the random.randn
         dz2 = yhat - y
         dz1 = np.dot(dz2, w2.T) * (1 - a1) * a1
         dw1 = np.dot(X.T, dz1) / n0
@@ -346,7 +341,7 @@ def predict_MLP(X, w0, b0, w1, b1):
 
 
 # Test st)
-# a = fit_MLP(x_train, y_train, 100, 500, 0.1)
+# a = fit_MLP(x_train, y_train, np.array([]), np.array([]), 100, 500, 0.1)
 # y_pred_train = predict_MLP(x_train, a[0], a[1], a[2], a[3])
 # predictions_train = np.select([y_pred_train < 0.5, y_pred_train >= 0.5], [0, 1])
 # print('Accuracy of train set', round(float(np.squeeze(sum(y_train == predictions_train) / len(y_train) * 100)), 3))
@@ -370,12 +365,12 @@ for m in M:
 print("Best model parameters:\n\tM: ", best_model[0], "\n\th: ", best_model[1], "\n\tE: ", best_model[2][5])
 
 # Show each plot separately
-# for i in range(len(M)):
-#     plt.plot(learn_rate, n_epochs[i])
-#     plt.title('Evolution of the Ε by η for M: ' + str(M[i]))
-#     plt.xlabel('η')
-#     plt.ylabel('E')
-#     plt.show()
+for i in range(len(M)):
+    plt.plot(learn_rate, n_epochs[i])
+    plt.title('Evolution of the Ε by η for M: ' + str(M[i]))
+    plt.xlabel('η')
+    plt.ylabel('E')
+    plt.show()
 
 # All plots together
 for i in range(len(M)):
@@ -390,5 +385,168 @@ plt.show()
 
 # theta)
 y_pred_test = predict_MLP(x_test, best_model[2][0], best_model[2][1], best_model[2][2], best_model[2][3])
+predictions_test = np.select([y_pred_test < 0.5, y_pred_test >= 0.5], [0, 1])
+print('Accuracy of test set', round(float(np.squeeze(sum(y_test == predictions_test) / len(y_test) * 100)), 3))
+
+
+# i)
+def create_mini_batches(X, y, batch_size):
+    """
+    Shuffles the data and create mini batches
+    :param X: an array with the data
+    :param y: an array with the labels
+    :param batch_size: size of mini batch
+    :return: an array where for each mini-batch the first element is the data
+             and the second element is the labels
+    """
+    mini_batches = []
+    n_minibatches = int(np.ceil(X.shape[0] / batch_size))
+    index = np.arange(len(X))
+    np.random.shuffle(index)
+    X = X[index, :]
+    y = y[index]
+
+    for i in range(n_minibatches-1):
+        X_mini = X[i * batch_size:(i + 1)*batch_size]
+        Y_mini = y[i * batch_size:(i + 1)*batch_size]
+        mini_batches.append((X_mini, Y_mini))
+
+    X_mini = X[(n_minibatches-1) * batch_size:X.shape[0]+1]
+    Y_mini = y[(n_minibatches-1) * batch_size:y.shape[0]+1]
+    mini_batches.append((X_mini, Y_mini))
+
+    return mini_batches
+
+
+def fit_MLP_mini_batch(X, y, X_valid=np.array([]), y_valid=np.array([]), n_hidden=100, n_iterations=0, learning_rate=0.1, batch_size=0):
+    """
+    MLP algorithm with as many input neurons as features, one hidden layer with n_hidden neurons and
+    one neuron for output layer. Activation function for hidden and output layer is the Sigmoid function.
+    With gradient descent and Early stopping based on the validation set.
+    :param X: a numpy array with the data
+    :param y: a numpy array with the labels
+    :param X_valid: a numpy array with the validation data
+    :param y_valid: a numpy array with the validation labels
+    :param n_hidden: number of neurons for hidden layer
+    :param n_iterations: number of iterations for testsing purposes
+    :param learning_rate: learning rate for gradient descent
+    :param batch_size: size for mini batch
+    :return: a tuple with first table of weights(w1), first vector opf biases(b1),
+                          second table of weights(w2), second vector opf biases(b2),
+                          cost calculated on validating data, number of epochs
+    """
+    # Number of neurons in each layer
+    n0, n1, n2 = (X.shape[1], n_hidden, 1)
+    np.random.seed(3)
+
+    # Initialize weights and biases
+    w1 = np.random.randn(n0, n1) * 0.01  # * 0.01 because data are [0,1]
+    b1 = np.zeros((n1,))
+    w2 = np.random.randn(n1, n2) * 0.01  # * 0.01 because data are [0,1]
+    b2 = np.zeros((n2,))
+
+    epoch = 0
+    cost = 10000
+
+    # for j in tqdm.tqdm(range(n_iterations)): # uncomment this line to test i)
+    while True:  # comment this line to test i)
+        count_error = 0
+        mini_batches = create_mini_batches(X, y, batch_size)
+        # cost = 100000
+        for i in range(len(mini_batches)):
+            X_temp = mini_batches[i][0]
+            y_temp = mini_batches[i][1]
+
+            # Forward Pass
+            z1 = np.dot(X_temp, w1) + b1
+            a1 = sigmoid(z1)
+            z2 = np.dot(a1, w2) + b2
+            yhat = sigmoid(z2)
+            # cur_cost = round(compute_cost(yhat, y), 5)  # uncomment this line to test i)
+            # ..............
+
+            # Early stopping # comment all early stopping to test i)
+            z1_val = np.dot(X_valid, w1) + b1
+            f1_val = sigmoid(z1_val)
+            z2_val = np.dot(f1_val, w2) + b2
+            yhat_val = sigmoid(z2_val)
+            cur_cost = round(compute_cost(yhat_val, y_valid), 5)
+
+            if cur_cost >= cost:
+                count_error += 1
+            else:
+                count_error = 0
+
+            if count_error == 5:
+                return w1, b1, w2, b2, cost, epoch+1
+            cost = cur_cost
+            # ..............
+
+            # Backward Pass
+            dz2 = yhat - y_temp
+            dz1 = np.dot(dz2, w2.T) * (1 - a1) * a1
+            dw1 = np.dot(X_temp.T, dz1) / n0
+            db1 = 1 / n0 * np.sum(dz1, axis=0, keepdims=True)
+            dw2 = np.dot(a1.T, dz2) / n0
+            db2 = 1 / n0 * np.sum(dz2, axis=0, keepdims=True)
+            # ...............
+
+            # update weights and biases
+            w1 = w1 - learning_rate * dw1
+            b1 = b1 - learning_rate * db1
+            w2 = w2 - learning_rate * dw2
+            b2 = b2 - learning_rate * db2
+            # ...........
+
+            # # Gradient checking
+            # gradEw, numericalGrad = gradcheck_sigmoid(w1, X, y, learning_rate)
+            # # Absolute norm
+            # print("The difference estimate for gradient of w1 is : ", np.max(np.abs(gradEw - numericalGrad)))
+            # gradEw, numericalGrad = gradcheck_sigmoid(w2, a1, y, learning_rate)
+            # # Absolute norm
+            # print("The difference estimate for gradient of w2 is : ", np.max(np.abs(gradEw - numericalGrad)))
+            # # ...........
+
+        epoch += 1
+    # return w1, b2, w2, b2, cur_cost, j+1  # uncomment this line to test i
+
+
+# a = fit_MLP_mini_batch(x_train, y_train, np.array([]), np.array([]), 100, 500, 0.1, 256)
+# y_pred_train = predict_MLP(x_train, a[0], a[1], a[2], a[3])
+# predictions_train = np.select([y_pred_train < 0.5, y_pred_train >= 0.5], [0, 1])
+# print('Accuracy of train set', round(float(np.squeeze(sum(y_train == predictions_train) / len(y_train) * 100)), 3))
+
+
+learn_rate = np.linspace(10**-5, 0.5, num=10)
+M = [2**i for i in range(1, 11)]
+B = [2**i for i in range(1, 9)]
+n_epochs = []
+best_model = (0, 0, 0, (0, 0, 0, 0, 10000))  # (number of neurons for hidden, learning rate, batch size, model)
+for b in B:
+    for m in M:
+        n_epochs_for_m = []
+        for lr in learn_rate:
+            print("\nLearning rate: ", lr, " Number of hidden layers: ", m, " Batch size: ", b)
+            a = fit_MLP_mini_batch(x_train, y_train, x_val, y_val, m, 1000, lr, b)
+            if a[4] < best_model[3][4]:
+                best_model = (m, lr, b, a)
+            n_epochs_for_m.append(a[5])
+        n_epochs.append(n_epochs_for_m)
+
+print("Best model parameters:\n\tM: ", best_model[0], "\n\th: ", best_model[1], "\n\tB: ", best_model[2], "\n\tE: ", best_model[3][5])
+
+# All plots together
+for j in range(len(B)):
+    for i in range(len(M)):
+        plt.plot(learn_rate, n_epochs[j*len(learn_rate)+i], label='M = ' + str(M[i]) + ', B = ' + str(B[j]))
+
+plt.title('Evolution of the Ε by η')
+plt.xlabel('η')
+plt.ylabel('E')
+plt.show()
+
+
+# theta)
+y_pred_test = predict_MLP(x_test, best_model[3][0], best_model[3][1], best_model[3][2], best_model[3][3])
 predictions_test = np.select([y_pred_test < 0.5, y_pred_test >= 0.5], [0, 1])
 print('Accuracy of test set', round(float(np.squeeze(sum(y_test == predictions_test) / len(y_test) * 100)), 3))
